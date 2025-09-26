@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "functions-framework --target=api",
     "gcp-build": "npm run build",
-    "deploy": "gcloud functions deploy api --gen2 --runtime=nodejs20 --region=YOUR_REGION --source=. --entry-point=api --trigger-http --allow-unauthenticated",
+    "deploy": "gcloud functions deploy api --gen2 --runtime=nodejs20 --region=asia-southeast1 --source=. --entry-point=api --trigger-http --allow-unauthenticated",
     "generate-schema": "node generate-schema.js"
   },
   "repository": {
