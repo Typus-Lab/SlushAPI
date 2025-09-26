@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response } from "express";
 
 const router = Router();
 
@@ -25,26 +25,26 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ListPositionsResponse'
  */
-router.get('/positions', (req: Request, res: Response) => {
-    const { address } = req.query;
-    if (!address) {
-        return res.status(400).send("Missing address query parameter");
-    }
-    // Mock data based on openapi.json
-    const mockPositions = {
-        positions: [
-            {
-                id: "position-1",
-                strategyId: "strategy-1",
-                type: "PositionV1",
-                principal: [{ coinType: "0x2::sui::SUI", amount: "5000000", valueUsd: 500.50 }],
-                pendingRewards: [{ coinType: "0x2::sui::SUI", amount: "100000", valueUsd: 10.01 }],
-                totalRewards: [{ coinType: "0x2::sui::SUI", amount: "150000", valueUsd: 15.01 }],
-                url: "https://partner.example/positions/position-1"
-            }
-        ]
-    };
-    res.status(200).json(mockPositions);
+router.get("/positions", (req: Request, res: Response) => {
+  const { address } = req.query;
+  if (!address) {
+    return res.status(400).send("Missing address query parameter");
+  }
+  // Mock data based on openapi.json
+  const mockPositions = {
+    positions: [
+      {
+        id: "position-1",
+        strategyId: "strategy-1",
+        type: "PositionV1",
+        principal: [{ coinType: "0x2::sui::SUI", amount: "5000000", valueUsd: 500.5 }],
+        pendingRewards: [{ coinType: "0x2::sui::SUI", amount: "100000", valueUsd: 10.01 }],
+        totalRewards: [{ coinType: "0x2::sui::SUI", amount: "150000", valueUsd: 15.01 }],
+        url: "https://partner.example/positions/position-1",
+      },
+    ],
+  };
+  res.status(200).json(mockPositions);
 });
 
 /**
@@ -70,21 +70,21 @@ router.get('/positions', (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/GetPositionResponse'
  */
-router.get('/positions/:positionId', (req: Request, res: Response) => {
-    const { positionId } = req.params;
-    // Mock data based on openapi.json
-    const mockPosition = {
-        position: {
-            id: positionId,
-            strategyId: "strategy-1",
-            type: "PositionV1",
-            principal: [{ coinType: "0x2::sui::SUI", amount: "5000000", valueUsd: 500.50 }],
-            pendingRewards: [{ coinType: "0x2::sui::SUI", amount: "100000", valueUsd: 10.01 }],
-            totalRewards: [{ coinType: "0x2::sui::SUI", amount: "150000", valueUsd: 15.01 }],
-            url: `https://partner.example/positions/${positionId}`
-        }
-    };
-    res.status(200).json(mockPosition);
+router.get("/positions/:positionId", (req: Request, res: Response) => {
+  const { positionId } = req.params;
+  // Mock data based on openapi.json
+  const mockPosition = {
+    position: {
+      id: positionId,
+      strategyId: "strategy-1",
+      type: "PositionV1",
+      principal: [{ coinType: "0x2::sui::SUI", amount: "5000000", valueUsd: 500.5 }],
+      pendingRewards: [{ coinType: "0x2::sui::SUI", amount: "100000", valueUsd: 10.01 }],
+      totalRewards: [{ coinType: "0x2::sui::SUI", amount: "150000", valueUsd: 15.01 }],
+      url: `https://partner.example/positions/${positionId}`,
+    },
+  };
+  res.status(200).json(mockPosition);
 });
 
 export default router;
