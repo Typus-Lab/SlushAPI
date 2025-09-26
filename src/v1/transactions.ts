@@ -82,9 +82,9 @@ router.post("/deposit", (req: Request, res: Response) => {
  *               $ref: '#/components/schemas/TransactionBuildError'
  */
 router.post("/withdraw", (req: Request, res: Response) => {
-  const { positionId, senderAddress, percentage, mode } = req.body;
+  const { positionId, senderAddress, principal, mode } = req.body;
 
-  if (!positionId || !senderAddress || typeof percentage !== "number" || !mode) {
+  if (!positionId || !senderAddress || !principal || !principal.coinType || !principal.amount || !mode) {
     return res.status(422).json({
       _tag: "TransactionBuildError",
       message: "Missing or invalid fields in withdraw request",
@@ -94,7 +94,7 @@ router.post("/withdraw", (req: Request, res: Response) => {
   // Mock data based on openapi.json
   const mockWithdrawResponse = {
     bytes: "base64-encoded-transaction-bytes",
-    principal: [{ coinType: "0x2::sui::SUI", amount: "2500000", valueUsd: 250.25 }],
+    principal: { coinType: "0x2::sui::SUI", amount: "2500000", valueUsd: 250.25 },
     rewards: [{ coinType: "0x2::sui::SUI", amount: "50000", valueUsd: 5.0 }],
     fees: [{ coinType: "0x2::sui::SUI", amount: "1000", valueUsd: 0.1 }],
   };

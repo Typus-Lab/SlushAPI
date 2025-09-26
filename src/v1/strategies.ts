@@ -26,7 +26,7 @@ router.get("/strategies", (req: Request, res: Response) => {
         id: "strategy-1",
         type: "StrategyV1",
         strategyType: "VAULT",
-        coinTypes: ["0x2::sui::SUI"],
+        coinType: "0x2::sui::SUI",
         minDeposit: [{ coinType: "0x2::sui::SUI", amount: "1000000" }],
         apy: {
           current: 0.05,
@@ -78,7 +78,7 @@ router.get("/strategies/:strategyId", (req: Request, res: Response) => {
       id: strategyId,
       type: "StrategyV1",
       strategyType: "VAULT",
-      coinTypes: ["0x2::sui::SUI"],
+      coinType: "0x2::sui::SUI",
       minDeposit: [{ coinType: "0x2::sui::SUI", amount: "1000000" }],
       apy: {
         current: 0.05,
