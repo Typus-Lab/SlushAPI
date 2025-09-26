@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Slush DeFi Quickstart Provider API",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Provider contract for standardized DeFi protocol integration with Slush Wallet."
   },
   "paths": {
@@ -227,7 +227,7 @@
           "id",
           "type",
           "strategyType",
-          "coinTypes",
+          "coinType",
           "minDeposit",
           "apy",
           "depositorsCount",
@@ -250,12 +250,10 @@
             "enum": ["VAULT", "LENDING"],
             "description": "High-level strategy category"
           },
-          "coinTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CoinType"
-            },
-            "description": "Input coin types supported by this strategy"
+          "coinType": {
+            "type": "string",
+            "description": "Input coin types supported by this strategy",
+            "pattern": "^(0x|0X)[a-fA-F0-9]{1,64}::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$"
           },
           "minDeposit": {
             "type": "array",
@@ -307,21 +305,18 @@
             "required": ["depositBps", "withdrawBps"],
             "properties": {
               "depositBps": {
-                "$ref": "#/components/schemas/BigInt"
+                "type": "string",
+                "description": "Deposit fee in basis points"
               },
               "withdrawBps": {
-                "$ref": "#/components/schemas/BigInt"
+                "type": "string",
+                "description": "Withdrawal fee in basis points"
               }
             },
             "additionalProperties": false
           }
         },
         "additionalProperties": false
-      },
-      "CoinType": {
-        "type": "string",
-        "description": "Sui coin type (e.g. 0x2::sui::SUI)",
-        "pattern": "^(0x|0X)[a-fA-F0-9]{1,64}::.+::.+$"
       },
       "CoinValue": {
         "type": "object",
@@ -331,7 +326,8 @@
             "$ref": "#/components/schemas/CoinType"
           },
           "amount": {
-            "$ref": "#/components/schemas/BigInt"
+            "type": "string",
+            "description": "Amount in base units (e.g. MIST for SUI)"
           },
           "valueUsd": {
             "type": "number",
@@ -340,9 +336,10 @@
         },
         "additionalProperties": false
       },
-      "BigInt": {
+      "CoinType": {
         "type": "string",
-        "description": "a string to be decoded into a bigint"
+        "description": "Sui coin type (e.g. 0x2::sui::SUI)",
+        "pattern": "^(0x|0X)[a-fA-F0-9]{1,64}::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$"
       },
       "Int": {
         "type": "integer",
@@ -390,11 +387,23 @@
             "description": "Literal tag used to identify the Position schema"
           },
           "principal": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CoinValue"
+            "type": "object",
+            "required": ["coinType", "amount"],
+            "properties": {
+              "coinType": {
+                "$ref": "#/components/schemas/CoinType"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount in base units (e.g. MIST for SUI)"
+              },
+              "valueUsd": {
+                "type": "number",
+                "description": "Value in USD (optional)"
+              }
             },
-            "description": "Principal amounts per coin type"
+            "additionalProperties": false,
+            "description": "Principal amount for the position"
           },
           "pendingRewards": {
             "type": "array",
@@ -411,14 +420,11 @@
             "description": "Total rewards (pending + compounded) per coin type"
           },
           "url": {
-            "$ref": "#/components/schemas/URL"
+            "type": "string",
+            "description": "Fully qualified URL that will be used to link the user to their position on the provider app"
           }
         },
         "additionalProperties": false
-      },
-      "URL": {
-        "type": "string",
-        "description": "a string to be decoded into a URL"
       },
       "GetPositionResponse": {
         "type": "object",
@@ -432,8 +438,13 @@
       },
       "DepositRequest": {
         "type": "object",
-        "required": ["strategyId", "senderAddress", "coinType", "nativeAmount"],
+        "required": ["type", "strategyId", "senderAddress", "coinType", "nativeAmount"],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["StrategyV1"],
+            "description": "Should match the type of the strategy being deposited to"
+          },
           "strategyId": {
             "type": "string",
             "description": "Target strategy identifier"
@@ -458,7 +469,11 @@
         "required": ["bytes", "netDeposit"],
         "properties": {
           "bytes": {
-            "$ref": "#/components/schemas/Bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Bytes"
+              }
+            ],
             "description": "Transaction bytes for signing"
           },
           "fees": {
@@ -476,7 +491,7 @@
       },
       "Bytes": {
         "type": "string",
-        "description": "a string to be decoded into a Uint8Array"
+        "description": "A base64-encoded string containing raw bytes"
       },
       "TransactionBuildError": {
         "type": "object",
@@ -496,8 +511,13 @@
       },
       "WithdrawRequest": {
         "type": "object",
-        "required": ["positionId", "senderAddress", "percentage", "mode"],
+        "required": ["type", "positionId", "senderAddress", "principal", "mode"],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["PositionV1"],
+            "description": "Should match the type of the position being withdrawn from"
+          },
           "positionId": {
             "type": "string",
             "description": "Position identifier to withdraw from"
@@ -506,12 +526,24 @@
             "type": "string",
             "description": "Sender's wallet address"
           },
-          "percentage": {
-            "type": "number",
-            "description": "Percentage of position to withdraw (0-1)",
-            "title": "lessThanOrEqualTo(1)",
-            "minimum": 0,
-            "maximum": 1
+          "principal": {
+            "type": "object",
+            "required": ["coinType", "amount"],
+            "properties": {
+              "coinType": {
+                "$ref": "#/components/schemas/CoinType"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount in base units (e.g. MIST for SUI)"
+              },
+              "valueUsd": {
+                "type": "number",
+                "description": "Value in USD (optional)"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Principal amount being withdrawn"
           },
           "mode": {
             "type": "string",
@@ -526,15 +558,31 @@
         "required": ["bytes", "principal", "rewards"],
         "properties": {
           "bytes": {
-            "$ref": "#/components/schemas/Bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Bytes"
+              }
+            ],
             "description": "Transaction bytes for signing"
           },
           "principal": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CoinValue"
+            "type": "object",
+            "required": ["coinType", "amount"],
+            "properties": {
+              "coinType": {
+                "$ref": "#/components/schemas/CoinType"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount in base units (e.g. MIST for SUI)"
+              },
+              "valueUsd": {
+                "type": "number",
+                "description": "Value in USD (optional)"
+              }
             },
-            "description": "Principal amounts being withdrawn"
+            "additionalProperties": false,
+            "description": "Principal amount being withdrawn"
           },
           "rewards": {
             "type": "array",
