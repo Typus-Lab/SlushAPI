@@ -1,0 +1,35 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-schema": "node generate-schema.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WayneAl/SlushAPI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/WayneAl/SlushAPI/issues"
+  },
+  "homepage": "https://github.com/WayneAl/SlushAPI#readme",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^4.0.0",
+    "express": "^5.1.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "typescript": "^5.9.2"
+  }
+}
