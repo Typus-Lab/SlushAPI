@@ -22,55 +22,10 @@ const router = Router();
  *               $ref: '#/components/schemas/ListStrategiesResponse'
  */
 router.get("/strategies", async (req: Request, res: Response) => {
-  const config = await TypusConfig.default("MAINNET", null);
-  const lpPool = await getLpPool(config);
-  // const tlp_price = Number(lpPool.poolInfo.tvlUsd) / Number(lpPool.poolInfo.totalShareSupply);
-  const stakePool = await getStakePool(config);
-  const tvlUsd = Number(lpPool.poolInfo.tvlUsd) / 10 ** 9;
-
-  let incentive_ratio =
-    Number(stakePool.incentives[0].config.periodIncentiveAmount) / Number(stakePool.poolInfo.totalShare);
-  // console.log(incentive_ratio);
-  let times = (365 * 24 * 3600 * 1000) / Number(stakePool.incentives[0].config.incentiveIntervalTsMs);
-  let incentive_apr = incentive_ratio * times;
-
-  const now = Math.round(Date.now() / 1000);
-
-  const { avg1h_fee_apr, avg24h_fee_apr, avg7d_fee_apr, avg30d_fee_apr } = await getTlpAprFromSentio(
-    now,
-    tvlUsd
-  );
-
-  const volume24hUsd = await getTotalVolumeFromSentio(now - 3600 * 24, now);
+  const tlpStrategy = await getTlpStrategy();
 
   const strategies = {
-    strategies: [
-      {
-        id: "tlp",
-        type: "StrategyV1",
-        strategyType: "VAULT",
-        coinType: "0xe27969a70f93034de9ce16e6ad661b480324574e68d15a64b513fd90eb2423e5::tlp::TLP",
-        minDeposit: [
-          {
-            coinType: "0xe27969a70f93034de9ce16e6ad661b480324574e68d15a64b513fd90eb2423e5::tlp::TLP",
-            amount: "1000000000",
-          },
-        ],
-        apy: {
-          current: avg1h_fee_apr + incentive_apr,
-          avg24h: avg24h_fee_apr + incentive_apr,
-          avg7d: avg7d_fee_apr + incentive_apr,
-          avg30d: avg30d_fee_apr + incentive_apr,
-        },
-        depositorsCount: 123, // TODO
-        tvlUsd: tvlUsd,
-        volume24hUsd: volume24hUsd,
-        fees: {
-          depositBps: "0",
-          withdrawBps: "10",
-        },
-      },
-    ],
+    strategies: [tlpStrategy],
   };
   res.status(200).json(strategies);
 });
@@ -100,58 +55,11 @@ router.get("/strategies", async (req: Request, res: Response) => {
  */
 router.get("/strategies/:strategyId", async (req: Request, res: Response) => {
   const { strategyId } = req.params;
-  // Mock data based on openapi.json
-
-  const config = await TypusConfig.default("MAINNET", null);
-  const lpPool = await getLpPool(config);
-  // const tlp_price = Number(lpPool.poolInfo.tvlUsd) / Number(lpPool.poolInfo.totalShareSupply);
-  const stakePool = await getStakePool(config);
-  const tvlUsd = Number(lpPool.poolInfo.tvlUsd) / 10 ** 9;
-
-  let incentive_ratio =
-    Number(stakePool.incentives[0].config.periodIncentiveAmount) / Number(stakePool.poolInfo.totalShare);
-  // console.log(incentive_ratio);
-  let times = (365 * 24 * 3600 * 1000) / Number(stakePool.incentives[0].config.incentiveIntervalTsMs);
-  let incentive_apr = incentive_ratio * times;
-
-  const now = Math.round(Date.now() / 1000);
-
-  const { avg1h_fee_apr, avg24h_fee_apr, avg7d_fee_apr, avg30d_fee_apr } = await getTlpAprFromSentio(
-    now,
-    tvlUsd
-  );
-
-  const volume24hUsd = await getTotalVolumeFromSentio(now - 3600 * 24, now);
-
-  const strategy = {
-    strategy: {
-      id: "tlp",
-      type: "StrategyV1",
-      strategyType: "VAULT",
-      coinType: "0xe27969a70f93034de9ce16e6ad661b480324574e68d15a64b513fd90eb2423e5::tlp::TLP",
-      minDeposit: [
-        {
-          coinType: "0xe27969a70f93034de9ce16e6ad661b480324574e68d15a64b513fd90eb2423e5::tlp::TLP",
-          amount: "1000000000",
-        },
-      ],
-      apy: {
-        current: avg1h_fee_apr + incentive_apr,
-        avg24h: avg24h_fee_apr + incentive_apr,
-        avg7d: avg7d_fee_apr + incentive_apr,
-        avg30d: avg30d_fee_apr + incentive_apr,
-      },
-      depositorsCount: 123, // TODO
-      tvlUsd: tvlUsd,
-      volume24hUsd: volume24hUsd,
-      fees: {
-        depositBps: "0",
-        withdrawBps: "10",
-      },
-    },
-  };
-
-  res.status(200).json(strategy);
+  if (strategyId !== "tlp") {
+    return res.status(404).send("Strategy not found");
+  }
+  const strategy = await getTlpStrategy();
+  res.status(200).json({ strategy: strategy });
 });
 
 export default router;
@@ -224,3 +132,52 @@ async function getTlpAprFromSentio(now: number, tvlUsd: number) {
 }
 
 getTlpAprFromSentio(Math.round(Date.now() / 1000), 1);
+
+async function getTlpStrategy() {
+  const config = await TypusConfig.default("MAINNET", null);
+  const lpPool = await getLpPool(config);
+  // const tlp_price = Number(lpPool.poolInfo.tvlUsd) / Number(lpPool.poolInfo.totalShareSupply);
+  const stakePool = await getStakePool(config);
+  const tvlUsd = Number(lpPool.poolInfo.tvlUsd) / 10 ** 9;
+
+  let incentive_ratio =
+    Number(stakePool.incentives[0].config.periodIncentiveAmount) / Number(stakePool.poolInfo.totalShare);
+  // console.log(incentive_ratio);
+  let times = (365 * 24 * 3600 * 1000) / Number(stakePool.incentives[0].config.incentiveIntervalTsMs);
+  let incentive_apr = incentive_ratio * times;
+
+  const now = Math.round(Date.now() / 1000);
+
+  const { avg1h_fee_apr, avg24h_fee_apr, avg7d_fee_apr, avg30d_fee_apr } = await getTlpAprFromSentio(
+    now,
+    tvlUsd
+  );
+
+  const volume24hUsd = await getTotalVolumeFromSentio(now - 3600 * 24, now);
+
+  return {
+    id: "tlp",
+    type: "StrategyV1",
+    strategyType: "VAULT",
+    coinType: "0xe27969a70f93034de9ce16e6ad661b480324574e68d15a64b513fd90eb2423e5::tlp::TLP",
+    minDeposit: [
+      {
+        coinType: "0xe27969a70f93034de9ce16e6ad661b480324574e68d15a64b513fd90eb2423e5::tlp::TLP",
+        amount: "1000000000",
+      },
+    ],
+    apy: {
+      current: avg1h_fee_apr + incentive_apr,
+      avg24h: avg24h_fee_apr + incentive_apr,
+      avg7d: avg7d_fee_apr + incentive_apr,
+      avg30d: avg30d_fee_apr + incentive_apr,
+    },
+    depositorsCount: 123, // TODO
+    tvlUsd: tvlUsd,
+    volume24hUsd: volume24hUsd,
+    fees: {
+      depositBps: "0",
+      withdrawBps: "10",
+    },
+  };
+}
