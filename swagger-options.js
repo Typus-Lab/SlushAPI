@@ -3,7 +3,7 @@ const options = {
     openapi: "3.1.0",
     info: {
       title: "Typus Perp TLP API",
-      version: "0.0.3",
+      version: "0.0.4",
       description: "Provider contract for standardized DeFi protocol integration with Slush Wallet.",
     },
     servers: [
