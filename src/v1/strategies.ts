@@ -172,7 +172,7 @@ async function getTlpStrategy() {
       avg7d: avg7d_fee_apr + incentive_apr,
       avg30d: avg30d_fee_apr + incentive_apr,
     },
-    depositorsCount: 123, // TODO
+    depositorsCount: Number(stakePool.poolInfo.u64Padding[2]),
     tvlUsd: tvlUsd,
     volume24hUsd: volume24hUsd,
     fees: {

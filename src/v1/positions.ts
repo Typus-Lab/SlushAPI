@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { TypusConfig } from "@typus/typus-sdk/dist/src/utils";
-import { getLpPool, getUserStake, NETWORK, TLP_TOKEN } from "@typus/typus-perp-sdk";
+import { getLpPool, getUserStake, getUserStakeById, NETWORK, TLP_TOKEN } from "@typus/typus-perp-sdk";
 
 const router = Router();
 
@@ -37,36 +37,41 @@ router.get("/positions", async (req: Request, res: Response) => {
   const lpPool = await getLpPool(config);
   const tlp_price = Number(lpPool.poolInfo.tvlUsd) / Number(lpPool.poolInfo.totalShareSupply);
 
-  const positions = {
-    positions: [
-      {
-        id: stakes[0][0].userShareId.toString(),
-        strategyId: "tlp",
-        type: "PositionV1",
-        principal: {
-          coinType: TLP_TOKEN,
-          amount: stakes[0][0].totalShares.toString(),
-          valueUsd: toUsd(stakes[0][0].totalShares, tlp_price),
+  if (stakes) {
+    const pendingRewards = Number(stakes[1][0]);
+    const harvestedRewards = Number(stakes[0].u64Padding[3]);
+
+    const positions = {
+      positions: [
+        {
+          id: stakes[0].userShareId.toString(),
+          strategyId: "tlp",
+          type: "PositionV1",
+          principal: {
+            coinType: TLP_TOKEN,
+            amount: stakes[0].totalShares.toString(),
+            valueUsd: toUsd(stakes[0].totalShares, tlp_price),
+          },
+          pendingRewards: [
+            {
+              coinType: TLP_TOKEN,
+              amount: pendingRewards.toString(),
+              valueUsd: toUsd(pendingRewards, tlp_price),
+            },
+          ],
+          totalRewards: [
+            {
+              coinType: TLP_TOKEN,
+              amount: (pendingRewards + harvestedRewards).toString(),
+              valueUsd: toUsd(pendingRewards + harvestedRewards, tlp_price),
+            },
+          ],
+          url: `https://partner.example/positions/${stakes[0].userShareId}`,
         },
-        pendingRewards: [
-          {
-            coinType: TLP_TOKEN,
-            amount: stakes[0][1][0].toString(),
-            valueUsd: toUsd(stakes[0][1][0], tlp_price),
-          },
-        ],
-        totalRewards: [
-          {
-            coinType: TLP_TOKEN,
-            amount: stakes[0][1][0].toString(),
-            valueUsd: toUsd(stakes[0][1][0], tlp_price),
-          },
-        ],
-        url: `https://partner.example/positions/${stakes[0][0].userShareId}`,
-      },
-    ],
-  };
-  res.status(200).json(positions);
+      ],
+    };
+    res.status(200).json(positions);
+  }
 });
 
 /**
@@ -94,23 +99,49 @@ router.get("/positions", async (req: Request, res: Response) => {
  */
 router.get("/positions/:positionId", async (req: Request, res: Response) => {
   const { positionId } = req.params;
-  // Mock data based on openapi.json
-  const mockPosition = {
-    position: {
-      id: positionId,
-      strategyId: "strategy-1",
-      type: "PositionV1",
-      principal: { coinType: "0x2::sui::SUI", amount: "5000000", valueUsd: 500.5 },
-      pendingRewards: [{ coinType: "0x2::sui::SUI", amount: "100000", valueUsd: 10.01 }],
-      totalRewards: [{ coinType: "0x2::sui::SUI", amount: "150000", valueUsd: 15.01 }],
-      url: `https://partner.example/positions/${positionId}`,
-    },
-  };
-  res.status(200).json(mockPosition);
+
+  const config = await TypusConfig.default("MAINNET", null);
+  const stakes = await getUserStakeById(config, positionId);
+  const lpPool = await getLpPool(config);
+  const tlp_price = Number(lpPool.poolInfo.tvlUsd) / Number(lpPool.poolInfo.totalShareSupply);
+
+  if (stakes) {
+    const pendingRewards = Number(stakes[1][0]);
+    const harvestedRewards = Number(stakes[0].u64Padding[3]);
+
+    const position = {
+      position: {
+        id: stakes[0].userShareId.toString(),
+        strategyId: "tlp",
+        type: "PositionV1",
+        principal: {
+          coinType: TLP_TOKEN,
+          amount: stakes[0].totalShares.toString(),
+          valueUsd: toUsd(stakes[0].totalShares, tlp_price),
+        },
+        pendingRewards: [
+          {
+            coinType: TLP_TOKEN,
+            amount: pendingRewards.toString(),
+            valueUsd: toUsd(pendingRewards, tlp_price),
+          },
+        ],
+        totalRewards: [
+          {
+            coinType: TLP_TOKEN,
+            amount: (pendingRewards + harvestedRewards).toString(),
+            valueUsd: toUsd(pendingRewards + harvestedRewards, tlp_price),
+          },
+        ],
+        url: `https://partner.example/positions/${stakes[0].userShareId}`,
+      },
+    };
+    res.status(200).json(position);
+  }
 });
 
 export default router;
 
-function toUsd(x: BigInt | string, tlp_price: number): number {
+function toUsd(x: BigInt | string | number, tlp_price: number): number {
   return (Number(x) * tlp_price) / 10 ** 9;
 }

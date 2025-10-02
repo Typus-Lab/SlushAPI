@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "functions-framework --target=api",
     "gcp-build": "npm run build",
-    "deploy": "gcloud functions deploy api --gen2 --runtime=nodejs20 --region=asia-southeast1 --source=. --entry-point=api --trigger-http --allow-unauthenticated",
+    "deploy": "gcloud functions deploy api --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=api --trigger-http --allow-unauthenticated",
     "generate-schema": "node generate-schema.js"
   },
   "repository": {
@@ -25,7 +25,7 @@
   "homepage": "https://github.com/WayneAl/SlushAPI#readme",
   "dependencies": {
     "@google-cloud/functions-framework": "^4.0.0",
-    "@typus/typus-perp-sdk": "^1.1.19",
+    "@typus/typus-perp-sdk": "^1.1.22",
     "express": "^5.1.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"

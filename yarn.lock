@@ -401,10 +401,10 @@
   dependencies:
     "@types/node" "*"
 
-"@typus/typus-perp-sdk@^1.1.19":
-  version "1.1.19"
-  resolved "https://registry.yarnpkg.com/@typus/typus-perp-sdk/-/typus-perp-sdk-1.1.19.tgz#a599d04711a90838e70ce4360ccdfe44d3e8ba89"
-  integrity sha512-wF5xMq2IBkdEYNxd1TVNoyAeUxZVQlUtF655/plUYnXpxMh8uDV6UbX+3Xn4dclBkKOZwAAk23prVX0Gyx1LDA==
+"@typus/typus-perp-sdk@^1.1.22":
+  version "1.1.22"
+  resolved "https://registry.yarnpkg.com/@typus/typus-perp-sdk/-/typus-perp-sdk-1.1.22.tgz#73fe58c76b981cbf28ef8128565f779a74198bd2"
+  integrity sha512-lYsiZKQzGA450ygpENvyPe4CyzMgQDmw9rxzx5idDUfKzG0W2b398qp2JTg7LbveWbOsd2ZZ49iTDWqr8Xf2EA==
   dependencies:
     "@typus/typus-sdk" "1.8.12"
 
