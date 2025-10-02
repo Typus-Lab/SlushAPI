@@ -1,6 +1,14 @@
 import { Router, Request, Response } from "express";
 import { createPythClient, TypusConfig } from "@typus/typus-sdk/dist/src/utils";
-import { getLpPools, getStakePool, getUserStake, mintStakeLp, TLP_TOKEN } from "@typus/typus-perp-sdk";
+import {
+  claim,
+  getLpPools,
+  getStakePool,
+  getUserStake,
+  mintStakeLp,
+  TLP_TOKEN,
+  unstakeRedeem,
+} from "@typus/typus-perp-sdk";
 import { SuiClient } from "@mysten/sui/client";
 import { TOKEN, typeArgToAsset } from "@typus/typus-sdk/dist/src/constants";
 import { Transaction } from "@mysten/sui/transactions";
@@ -91,25 +99,24 @@ router.post("/deposit", async (req: Request, res: Response) => {
   // console.log(dryrunRes);
   const MintLpEvent = dryrunRes.events.find((e) => e.type.endsWith("MintLpEvent"));
   const StakeEvent = dryrunRes.events.find((e) => e.type.endsWith("StakeEvent"));
-  console.log(MintLpEvent);
-  console.log(StakeEvent);
+  // console.log(MintLpEvent);
+  // console.log(StakeEvent);
 
   let bytes = await tx.build({
     client: provider,
   });
   // console.log(bytes);
 
-  // Mock data based on openapi.json
-  const mockDepositResponse = {
+  const depositResponse = {
     bytes: Array.from(bytes),
     fees: [],
     netDeposit: {
       coinType: TLP_TOKEN,
       amount: (MintLpEvent?.parsedJson as any)?.minted_lp_amount,
-      valueUsd: (MintLpEvent?.parsedJson as any)?.deposit_amount_usd,
+      valueUsd: Number((MintLpEvent?.parsedJson as any)?.deposit_amount_usd) / 10 ** 9,
     },
   };
-  res.status(200).json(mockDepositResponse);
+  res.status(200).json(depositResponse);
 });
 
 /**
@@ -140,7 +147,7 @@ router.post("/deposit", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/TransactionBuildError'
  */
-router.post("/withdraw", (req: Request, res: Response) => {
+router.post("/withdraw", async (req: Request, res: Response) => {
   const { positionId, senderAddress, principal, mode } = req.body;
 
   if (!positionId || !senderAddress || !principal || !principal.coinType || !principal.amount || !mode) {
@@ -150,14 +157,91 @@ router.post("/withdraw", (req: Request, res: Response) => {
     });
   }
 
-  // Mock data based on openapi.json
-  const mockWithdrawResponse = {
-    bytes: "base64-encoded-transaction-bytes",
-    principal: { coinType: "0x2::sui::SUI", amount: "2500000", valueUsd: 250.25 },
-    rewards: [{ coinType: "0x2::sui::SUI", amount: "50000", valueUsd: 5.0 }],
-    fees: [{ coinType: "0x2::sui::SUI", amount: "1000", valueUsd: 0.1 }],
-  };
-  res.status(200).json(mockWithdrawResponse);
+  let config = await TypusConfig.default("MAINNET", null);
+  let provider = new SuiClient({ url: config.rpcEndpoint });
+
+  let lpPools = await getLpPools(config);
+  let lpPool = lpPools[0];
+  // console.log(lpPool);
+
+  let stakePool = await getStakePool(config);
+  // console.log(stakePool);
+
+  let stakes = await getUserStake(config, senderAddress);
+  // console.log(stakes);
+
+  let pythClient = createPythClient(provider, "MAINNET");
+
+  let cTOKEN: TOKEN = typeArgToAsset(principal.coinType);
+
+  let tx = new Transaction();
+
+  await unstakeRedeem(config, tx, pythClient, {
+    userShareId: stakes![0].userShareId.toString(),
+    lpPool,
+    stakePool,
+    share: principal.amount,
+    user: senderAddress,
+  });
+
+  await claim(config, tx, pythClient, {
+    lpPool,
+    stakePool,
+    cTOKEN,
+    user: senderAddress,
+  });
+
+  let dryrunRes = await provider.devInspectTransactionBlock({
+    transactionBlock: tx,
+    sender: senderAddress,
+  });
+  // console.log(dryrunRes);
+  const RedeemEvent = dryrunRes.events.find((e) => e.type.endsWith("RedeemEvent"));
+  const BurnLpEvent = dryrunRes.events.find((e) => e.type.endsWith("BurnLpEvent"));
+
+  console.log(RedeemEvent);
+  console.log(BurnLpEvent);
+
+  if (RedeemEvent && BurnLpEvent) {
+    let bytes = await tx.build({
+      client: provider,
+    });
+    // console.log(bytes);
+
+    const RedeemEventJson = RedeemEvent.parsedJson as any;
+    const BurnLpEventJson = BurnLpEvent.parsedJson as any;
+
+    const withdrawTotalUsd = Number(BurnLpEventJson.burn_amount_usd) / 10 ** 9;
+    const withdrawFeeUsd = Number(BurnLpEventJson.burn_fee_usd) / 10 ** 9;
+    const withdrawUsd = withdrawTotalUsd - withdrawFeeUsd;
+
+    const withdrawAmount = Number(BurnLpEventJson.withdraw_token_amount);
+    const withdrawTokenPrice = withdrawUsd / withdrawAmount;
+    const withdrawFee = Math.round(withdrawFeeUsd / withdrawTokenPrice);
+
+    const withdrawResponse = {
+      bytes: Array.from(bytes),
+      principal: {
+        coinType: BurnLpEventJson.liquidity_token_type.name,
+        amount: withdrawAmount,
+        valueUsd: withdrawUsd,
+      },
+      rewards: [],
+      fees: [
+        {
+          coinType: principal.coinType,
+          amount: withdrawFee,
+          valueUsd: withdrawFeeUsd,
+        },
+      ],
+    };
+
+    res.status(200).json(withdrawResponse);
+  }
 });
 
 export default router;
+
+function toUsd(x: BigInt | string | number, tlp_price: number): number {
+  return (Number(x) * tlp_price) / 10 ** 9;
+}
