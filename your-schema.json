@@ -1,216 +1,22 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Slush DeFi Quickstart Provider API",
-    "version": "0.0.3",
+    "title": "Typus Perp TLP API",
+    "version": "0.0.4",
     "description": "Provider contract for standardized DeFi protocol integration with Slush Wallet."
   },
-  "paths": {
-    "/v1/strategies": {
-      "get": {
-        "tags": ["strategies"],
-        "operationId": "strategies.listStrategies",
-        "parameters": [],
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "ListStrategiesResponse",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListStrategiesResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "List all strategies"
-      }
-    },
-    "/v1/strategies/{strategyId}": {
-      "get": {
-        "tags": ["strategies"],
-        "operationId": "strategies.getStrategy",
-        "parameters": [
-          {
-            "name": "strategyId",
-            "in": "path",
-            "schema": {
-              "type": "string",
-              "description": "Strategy identifier"
-            },
-            "required": true,
-            "description": "Strategy identifier"
-          }
-        ],
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "GetStrategyResponse",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetStrategyResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get strategy details"
-      }
-    },
-    "/v1/positions": {
-      "get": {
-        "tags": ["positions"],
-        "operationId": "positions.listPositions",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "description": "User's wallet address"
-            },
-            "required": true,
-            "description": "User's wallet address"
-          }
-        ],
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "ListPositionsResponse",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListPositionsResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "List user positions"
-      }
-    },
-    "/v1/positions/{positionId}": {
-      "get": {
-        "tags": ["positions"],
-        "operationId": "positions.getPosition",
-        "parameters": [
-          {
-            "name": "positionId",
-            "in": "path",
-            "schema": {
-              "type": "string",
-              "description": "Position identifier"
-            },
-            "required": true,
-            "description": "Position identifier"
-          }
-        ],
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "GetPositionResponse",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetPositionResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get position details"
-      }
-    },
-    "/v1/deposit": {
-      "post": {
-        "tags": ["transactions"],
-        "operationId": "transactions.createDeposit",
-        "parameters": [],
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "DepositResponse",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DepositResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Error that occurred during transaction building",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionBuildError"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Create deposit transaction",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DepositRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/withdraw": {
-      "post": {
-        "tags": ["transactions"],
-        "operationId": "transactions.createWithdraw",
-        "parameters": [],
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "WithdrawResponse",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WithdrawResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Error that occurred during transaction building",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionBuildError"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Create withdrawal transaction",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WithdrawRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
+  "servers": [
+    {
+      "url": "https://api.partner.example"
     }
-  },
+  ],
   "components": {
     "schemas": {
       "ListStrategiesResponse": {
         "type": "object",
-        "required": ["strategies"],
+        "required": [
+          "strategies"
+        ],
         "properties": {
           "strategies": {
             "type": "array",
@@ -227,7 +33,7 @@
           "id",
           "type",
           "strategyType",
-          "coinTypes",
+          "coinType",
           "minDeposit",
           "apy",
           "depositorsCount",
@@ -242,20 +48,23 @@
           },
           "type": {
             "type": "string",
-            "enum": ["StrategyV1"],
+            "enum": [
+              "StrategyV1"
+            ],
             "description": "Literal tag used to identify the Strategy schema"
           },
           "strategyType": {
             "type": "string",
-            "enum": ["VAULT", "LENDING"],
+            "enum": [
+              "VAULT",
+              "LENDING"
+            ],
             "description": "High-level strategy category"
           },
-          "coinTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CoinType"
-            },
-            "description": "Input coin types supported by this strategy"
+          "coinType": {
+            "type": "string",
+            "description": "Input coin types supported by this strategy",
+            "pattern": "^(0x|0X)[a-fA-F0-9]{1,64}::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$"
           },
           "minDeposit": {
             "type": "array",
@@ -266,7 +75,12 @@
           },
           "apy": {
             "type": "object",
-            "required": ["current", "avg24h", "avg7d", "avg30d"],
+            "required": [
+              "current",
+              "avg24h",
+              "avg7d",
+              "avg30d"
+            ],
             "properties": {
               "current": {
                 "type": "number",
@@ -304,13 +118,18 @@
           },
           "fees": {
             "type": "object",
-            "required": ["depositBps", "withdrawBps"],
+            "required": [
+              "depositBps",
+              "withdrawBps"
+            ],
             "properties": {
               "depositBps": {
-                "$ref": "#/components/schemas/BigInt"
+                "type": "string",
+                "description": "Deposit fee in basis points"
               },
               "withdrawBps": {
-                "$ref": "#/components/schemas/BigInt"
+                "type": "string",
+                "description": "Withdrawal fee in basis points"
               }
             },
             "additionalProperties": false
@@ -318,20 +137,19 @@
         },
         "additionalProperties": false
       },
-      "CoinType": {
-        "type": "string",
-        "description": "Sui coin type (e.g. 0x2::sui::SUI)",
-        "pattern": "^(0x|0X)[a-fA-F0-9]{1,64}::.+::.+$"
-      },
       "CoinValue": {
         "type": "object",
-        "required": ["coinType", "amount"],
+        "required": [
+          "coinType",
+          "amount"
+        ],
         "properties": {
           "coinType": {
             "$ref": "#/components/schemas/CoinType"
           },
           "amount": {
-            "$ref": "#/components/schemas/BigInt"
+            "type": "string",
+            "description": "Amount in base units (e.g. MIST for SUI)"
           },
           "valueUsd": {
             "type": "number",
@@ -340,9 +158,10 @@
         },
         "additionalProperties": false
       },
-      "BigInt": {
+      "CoinType": {
         "type": "string",
-        "description": "a string to be decoded into a bigint"
+        "description": "Sui coin type (e.g. 0x2::sui::SUI)",
+        "pattern": "^(0x|0X)[a-fA-F0-9]{1,64}::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$"
       },
       "Int": {
         "type": "integer",
@@ -351,7 +170,9 @@
       },
       "GetStrategyResponse": {
         "type": "object",
-        "required": ["strategy"],
+        "required": [
+          "strategy"
+        ],
         "properties": {
           "strategy": {
             "$ref": "#/components/schemas/Strategy"
@@ -361,7 +182,9 @@
       },
       "ListPositionsResponse": {
         "type": "object",
-        "required": ["positions"],
+        "required": [
+          "positions"
+        ],
         "properties": {
           "positions": {
             "type": "array",
@@ -374,7 +197,14 @@
       },
       "Position": {
         "type": "object",
-        "required": ["id", "strategyId", "type", "principal", "pendingRewards", "url"],
+        "required": [
+          "id",
+          "strategyId",
+          "type",
+          "principal",
+          "pendingRewards",
+          "url"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -386,15 +216,32 @@
           },
           "type": {
             "type": "string",
-            "enum": ["PositionV1"],
+            "enum": [
+              "PositionV1"
+            ],
             "description": "Literal tag used to identify the Position schema"
           },
           "principal": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CoinValue"
+            "type": "object",
+            "required": [
+              "coinType",
+              "amount"
+            ],
+            "properties": {
+              "coinType": {
+                "$ref": "#/components/schemas/CoinType"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount in base units (e.g. MIST for SUI)"
+              },
+              "valueUsd": {
+                "type": "number",
+                "description": "Value in USD (optional)"
+              }
             },
-            "description": "Principal amounts per coin type"
+            "additionalProperties": false,
+            "description": "Principal amount for the position"
           },
           "pendingRewards": {
             "type": "array",
@@ -411,18 +258,17 @@
             "description": "Total rewards (pending + compounded) per coin type"
           },
           "url": {
-            "$ref": "#/components/schemas/URL"
+            "type": "string",
+            "description": "Fully qualified URL that will be used to link the user to their position on the provider app"
           }
         },
         "additionalProperties": false
       },
-      "URL": {
-        "type": "string",
-        "description": "a string to be decoded into a URL"
-      },
       "GetPositionResponse": {
         "type": "object",
-        "required": ["position"],
+        "required": [
+          "position"
+        ],
         "properties": {
           "position": {
             "$ref": "#/components/schemas/Position"
@@ -432,8 +278,21 @@
       },
       "DepositRequest": {
         "type": "object",
-        "required": ["strategyId", "senderAddress", "coinType", "nativeAmount"],
+        "required": [
+          "type",
+          "strategyId",
+          "senderAddress",
+          "coinType",
+          "nativeAmount"
+        ],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "StrategyV1"
+            ],
+            "description": "Should match the type of the strategy being deposited to"
+          },
           "strategyId": {
             "type": "string",
             "description": "Target strategy identifier"
@@ -455,10 +314,17 @@
       },
       "DepositResponse": {
         "type": "object",
-        "required": ["bytes", "netDeposit"],
+        "required": [
+          "bytes",
+          "netDeposit"
+        ],
         "properties": {
           "bytes": {
-            "$ref": "#/components/schemas/Bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Bytes"
+              }
+            ],
             "description": "Transaction bytes for signing"
           },
           "fees": {
@@ -476,11 +342,13 @@
       },
       "Bytes": {
         "type": "string",
-        "description": "a string to be decoded into a Uint8Array"
+        "description": "A base64-encoded string containing raw bytes"
       },
       "TransactionBuildError": {
         "type": "object",
-        "required": ["_tag"],
+        "required": [
+          "_tag"
+        ],
         "properties": {
           "message": {
             "type": "string",
@@ -488,7 +356,9 @@
           },
           "_tag": {
             "type": "string",
-            "enum": ["TransactionBuildError"]
+            "enum": [
+              "TransactionBuildError"
+            ]
           }
         },
         "additionalProperties": false,
@@ -496,8 +366,21 @@
       },
       "WithdrawRequest": {
         "type": "object",
-        "required": ["positionId", "senderAddress", "percentage", "mode"],
+        "required": [
+          "type",
+          "positionId",
+          "senderAddress",
+          "principal",
+          "mode"
+        ],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "PositionV1"
+            ],
+            "description": "Should match the type of the position being withdrawn from"
+          },
           "positionId": {
             "type": "string",
             "description": "Position identifier to withdraw from"
@@ -506,16 +389,34 @@
             "type": "string",
             "description": "Sender's wallet address"
           },
-          "percentage": {
-            "type": "number",
-            "description": "Percentage of position to withdraw (0-1)",
-            "title": "lessThanOrEqualTo(1)",
-            "minimum": 0,
-            "maximum": 1
+          "principal": {
+            "type": "object",
+            "required": [
+              "coinType",
+              "amount"
+            ],
+            "properties": {
+              "coinType": {
+                "$ref": "#/components/schemas/CoinType"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount in base units (e.g. MIST for SUI)"
+              },
+              "valueUsd": {
+                "type": "number",
+                "description": "Value in USD (optional)"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Principal amount being withdrawn"
           },
           "mode": {
             "type": "string",
-            "enum": ["as-is", "usdc"],
+            "enum": [
+              "as-is",
+              "usdc"
+            ],
             "description": "Whether the user wants to withdraw in the same coin or in USDC"
           }
         },
@@ -523,18 +424,41 @@
       },
       "WithdrawResponse": {
         "type": "object",
-        "required": ["bytes", "principal", "rewards"],
+        "required": [
+          "bytes",
+          "principal",
+          "rewards"
+        ],
         "properties": {
           "bytes": {
-            "$ref": "#/components/schemas/Bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Bytes"
+              }
+            ],
             "description": "Transaction bytes for signing"
           },
           "principal": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CoinValue"
+            "type": "object",
+            "required": [
+              "coinType",
+              "amount"
+            ],
+            "properties": {
+              "coinType": {
+                "$ref": "#/components/schemas/CoinType"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount in base units (e.g. MIST for SUI)"
+              },
+              "valueUsd": {
+                "type": "number",
+                "description": "Value in USD (optional)"
+              }
             },
-            "description": "Principal amounts being withdrawn"
+            "additionalProperties": false,
+            "description": "Principal amount being withdrawn"
           },
           "rewards": {
             "type": "array",
@@ -556,21 +480,206 @@
     },
     "securitySchemes": {}
   },
-  "security": [],
-  "tags": [
-    {
-      "name": "strategies"
+  "paths": {
+    "/v1/positions": {
+      "get": {
+        "tags": [
+          "positions"
+        ],
+        "summary": "List user positions",
+        "operationId": "positions.listPositions",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User's wallet address"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ListPositionsResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPositionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    {
-      "name": "positions"
+    "/v1/positions/{positionId}": {
+      "get": {
+        "tags": [
+          "positions"
+        ],
+        "summary": "Get position details",
+        "operationId": "positions.getPosition",
+        "parameters": [
+          {
+            "name": "positionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Position identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "GetPositionResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPositionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    {
-      "name": "transactions"
+    "/v1/strategies": {
+      "get": {
+        "tags": [
+          "strategies"
+        ],
+        "summary": "List all strategies",
+        "operationId": "strategies.listStrategies",
+        "responses": {
+          "200": {
+            "description": "ListStrategiesResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListStrategiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/strategies/{strategyId}": {
+      "get": {
+        "tags": [
+          "strategies"
+        ],
+        "summary": "Get strategy details",
+        "operationId": "strategies.getStrategy",
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Strategy identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "GetStrategyResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStrategyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/deposit": {
+      "post": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Create deposit transaction",
+        "operationId": "transactions.createDeposit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepositRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DepositResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepositResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error that occurred during transaction building",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionBuildError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/withdraw": {
+      "post": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Create withdrawal transaction",
+        "operationId": "transactions.createWithdraw",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "WithdrawResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error that occurred during transaction building",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionBuildError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
-  ],
-  "servers": [
-    {
-      "url": "https://api.partner.example"
-    }
-  ]
+  },
+  "tags": []
 }
