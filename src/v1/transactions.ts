@@ -1,4 +1,9 @@
 import { Router, Request, Response } from "express";
+import { createPythClient, TypusConfig } from "@typus/typus-sdk/dist/src/utils";
+import { getLpPools, getStakePool, getUserStake, mintStakeLp, TLP_TOKEN } from "@typus/typus-perp-sdk";
+import { SuiClient } from "@mysten/sui/client";
+import { TOKEN, typeArgToAsset } from "@typus/typus-sdk/dist/src/constants";
+import { Transaction } from "@mysten/sui/transactions";
 
 const router = Router();
 
@@ -30,7 +35,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/TransactionBuildError'
  */
-router.post("/deposit", (req: Request, res: Response) => {
+router.post("/deposit", async (req: Request, res: Response) => {
   const { strategyId, senderAddress, coinType, nativeAmount } = req.body;
 
   if (!strategyId || !senderAddress || !coinType || !nativeAmount) {
@@ -40,14 +45,68 @@ router.post("/deposit", (req: Request, res: Response) => {
     });
   }
 
+  let config = await TypusConfig.default("MAINNET", null);
+  let provider = new SuiClient({ url: config.rpcEndpoint });
+
+  let lpPools = await getLpPools(config);
+  let lpPool = lpPools[0];
+  // console.log(lpPool);
+
+  let stakePool = await getStakePool(config);
+  // console.log(stakePool);
+
+  let stakes = await getUserStake(config, senderAddress);
+  // console.log(stakes);
+
+  let pythClient = createPythClient(provider, "MAINNET");
+
+  let cTOKEN: TOKEN = typeArgToAsset(coinType);
+
+  let coins = (
+    await provider.getCoins({
+      owner: senderAddress,
+      coinType,
+    })
+  ).data.map((coin) => coin.coinObjectId);
+  // console.log(coins.length);
+
+  let tx = new Transaction();
+
+  tx = await mintStakeLp(config, tx, pythClient, {
+    lpPool,
+    stakePool,
+    coins,
+    cTOKEN,
+    amount: nativeAmount,
+    user: senderAddress,
+    stake: true,
+    userShareId: stakes ? stakes[0].userShareId.toString() : null,
+    isAutoCompound: true,
+  });
+
+  let dryrunRes = await provider.devInspectTransactionBlock({
+    transactionBlock: tx,
+    sender: senderAddress,
+  });
+  // console.log(dryrunRes);
+  const MintLpEvent = dryrunRes.events.find((e) => e.type.endsWith("MintLpEvent"));
+  const StakeEvent = dryrunRes.events.find((e) => e.type.endsWith("StakeEvent"));
+  console.log(MintLpEvent);
+  console.log(StakeEvent);
+
+  let bytes = await tx.build({
+    client: provider,
+  });
+  // console.log(bytes);
+
   // Mock data based on openapi.json
   const mockDepositResponse = {
-    bytes: "base64-encoded-transaction-bytes",
-    fees: [{ coinType: "0x2::sui::SUI", amount: "1000", valueUsd: 0.1 }],
+    bytes: Array.from(bytes),
+    fees: [],
     netDeposit: {
-      coinType: coinType,
-      amount: nativeAmount,
-      valueUsd: parseFloat(nativeAmount) / 1000000, // Example conversion
+      coinType: TLP_TOKEN,
+      amount: (MintLpEvent?.parsedJson as any)?.minted_lp_amount,
+      valueUsd: (MintLpEvent?.parsedJson as any)?.deposit_amount_usd,
     },
   };
   res.status(200).json(mockDepositResponse);

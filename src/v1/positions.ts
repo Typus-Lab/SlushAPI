@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { TypusConfig } from "@typus/typus-sdk/dist/src/utils";
-import { getLpPool, getUserStake, getUserStakeById, NETWORK, TLP_TOKEN } from "@typus/typus-perp-sdk";
+import { getLpPool, getUserStake, getUserStakeById, TLP_TOKEN } from "@typus/typus-perp-sdk";
 
 const router = Router();
 
