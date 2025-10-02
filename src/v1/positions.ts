@@ -66,7 +66,7 @@ router.get("/positions", async (req: Request, res: Response) => {
               valueUsd: toUsd(pendingRewards + harvestedRewards, tlp_price),
             },
           ],
-          url: `https://partner.example/positions/${stakes[0].userShareId}`,
+          url: `https://us-central1-aqueous-freedom-378103.cloudfunctions.net/api/positions/${stakes[0].userShareId}`,
         },
       ],
     };
@@ -133,7 +133,7 @@ router.get("/positions/:positionId", async (req: Request, res: Response) => {
             valueUsd: toUsd(pendingRewards + harvestedRewards, tlp_price),
           },
         ],
-        url: `https://partner.example/positions/${stakes[0].userShareId}`,
+        url: `https://us-central1-aqueous-freedom-378103.cloudfunctions.net/api/positions/${stakes[0].userShareId}`,
       },
     };
     res.status(200).json(position);

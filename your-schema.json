@@ -7,16 +7,14 @@
   },
   "servers": [
     {
-      "url": "https://api.partner.example"
+      "url": "https://us-central1-aqueous-freedom-378103.cloudfunctions.net/api"
     }
   ],
   "components": {
     "schemas": {
       "ListStrategiesResponse": {
         "type": "object",
-        "required": [
-          "strategies"
-        ],
+        "required": ["strategies"],
         "properties": {
           "strategies": {
             "type": "array",
@@ -48,17 +46,12 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "StrategyV1"
-            ],
+            "enum": ["StrategyV1"],
             "description": "Literal tag used to identify the Strategy schema"
           },
           "strategyType": {
             "type": "string",
-            "enum": [
-              "VAULT",
-              "LENDING"
-            ],
+            "enum": ["VAULT", "LENDING"],
             "description": "High-level strategy category"
           },
           "coinType": {
@@ -75,12 +68,7 @@
           },
           "apy": {
             "type": "object",
-            "required": [
-              "current",
-              "avg24h",
-              "avg7d",
-              "avg30d"
-            ],
+            "required": ["current", "avg24h", "avg7d", "avg30d"],
             "properties": {
               "current": {
                 "type": "number",
@@ -118,10 +106,7 @@
           },
           "fees": {
             "type": "object",
-            "required": [
-              "depositBps",
-              "withdrawBps"
-            ],
+            "required": ["depositBps", "withdrawBps"],
             "properties": {
               "depositBps": {
                 "type": "string",
@@ -139,10 +124,7 @@
       },
       "CoinValue": {
         "type": "object",
-        "required": [
-          "coinType",
-          "amount"
-        ],
+        "required": ["coinType", "amount"],
         "properties": {
           "coinType": {
             "$ref": "#/components/schemas/CoinType"
@@ -170,9 +152,7 @@
       },
       "GetStrategyResponse": {
         "type": "object",
-        "required": [
-          "strategy"
-        ],
+        "required": ["strategy"],
         "properties": {
           "strategy": {
             "$ref": "#/components/schemas/Strategy"
@@ -182,9 +162,7 @@
       },
       "ListPositionsResponse": {
         "type": "object",
-        "required": [
-          "positions"
-        ],
+        "required": ["positions"],
         "properties": {
           "positions": {
             "type": "array",
@@ -197,14 +175,7 @@
       },
       "Position": {
         "type": "object",
-        "required": [
-          "id",
-          "strategyId",
-          "type",
-          "principal",
-          "pendingRewards",
-          "url"
-        ],
+        "required": ["id", "strategyId", "type", "principal", "pendingRewards", "url"],
         "properties": {
           "id": {
             "type": "string",
@@ -216,17 +187,12 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "PositionV1"
-            ],
+            "enum": ["PositionV1"],
             "description": "Literal tag used to identify the Position schema"
           },
           "principal": {
             "type": "object",
-            "required": [
-              "coinType",
-              "amount"
-            ],
+            "required": ["coinType", "amount"],
             "properties": {
               "coinType": {
                 "$ref": "#/components/schemas/CoinType"
@@ -266,9 +232,7 @@
       },
       "GetPositionResponse": {
         "type": "object",
-        "required": [
-          "position"
-        ],
+        "required": ["position"],
         "properties": {
           "position": {
             "$ref": "#/components/schemas/Position"
@@ -278,19 +242,11 @@
       },
       "DepositRequest": {
         "type": "object",
-        "required": [
-          "type",
-          "strategyId",
-          "senderAddress",
-          "coinType",
-          "nativeAmount"
-        ],
+        "required": ["type", "strategyId", "senderAddress", "coinType", "nativeAmount"],
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "StrategyV1"
-            ],
+            "enum": ["StrategyV1"],
             "description": "Should match the type of the strategy being deposited to"
           },
           "strategyId": {
@@ -314,10 +270,7 @@
       },
       "DepositResponse": {
         "type": "object",
-        "required": [
-          "bytes",
-          "netDeposit"
-        ],
+        "required": ["bytes", "netDeposit"],
         "properties": {
           "bytes": {
             "allOf": [
@@ -346,9 +299,7 @@
       },
       "TransactionBuildError": {
         "type": "object",
-        "required": [
-          "_tag"
-        ],
+        "required": ["_tag"],
         "properties": {
           "message": {
             "type": "string",
@@ -356,9 +307,7 @@
           },
           "_tag": {
             "type": "string",
-            "enum": [
-              "TransactionBuildError"
-            ]
+            "enum": ["TransactionBuildError"]
           }
         },
         "additionalProperties": false,
@@ -366,19 +315,11 @@
       },
       "WithdrawRequest": {
         "type": "object",
-        "required": [
-          "type",
-          "positionId",
-          "senderAddress",
-          "principal",
-          "mode"
-        ],
+        "required": ["type", "positionId", "senderAddress", "principal", "mode"],
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "PositionV1"
-            ],
+            "enum": ["PositionV1"],
             "description": "Should match the type of the position being withdrawn from"
           },
           "positionId": {
@@ -391,10 +332,7 @@
           },
           "principal": {
             "type": "object",
-            "required": [
-              "coinType",
-              "amount"
-            ],
+            "required": ["coinType", "amount"],
             "properties": {
               "coinType": {
                 "$ref": "#/components/schemas/CoinType"
@@ -413,10 +351,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "as-is",
-              "usdc"
-            ],
+            "enum": ["as-is", "usdc"],
             "description": "Whether the user wants to withdraw in the same coin or in USDC"
           }
         },
@@ -424,11 +359,7 @@
       },
       "WithdrawResponse": {
         "type": "object",
-        "required": [
-          "bytes",
-          "principal",
-          "rewards"
-        ],
+        "required": ["bytes", "principal", "rewards"],
         "properties": {
           "bytes": {
             "allOf": [
@@ -440,10 +371,7 @@
           },
           "principal": {
             "type": "object",
-            "required": [
-              "coinType",
-              "amount"
-            ],
+            "required": ["coinType", "amount"],
             "properties": {
               "coinType": {
                 "$ref": "#/components/schemas/CoinType"
@@ -483,9 +411,7 @@
   "paths": {
     "/v1/positions": {
       "get": {
-        "tags": [
-          "positions"
-        ],
+        "tags": ["positions"],
         "summary": "List user positions",
         "operationId": "positions.listPositions",
         "parameters": [
@@ -515,9 +441,7 @@
     },
     "/v1/positions/{positionId}": {
       "get": {
-        "tags": [
-          "positions"
-        ],
+        "tags": ["positions"],
         "summary": "Get position details",
         "operationId": "positions.getPosition",
         "parameters": [
@@ -547,9 +471,7 @@
     },
     "/v1/strategies": {
       "get": {
-        "tags": [
-          "strategies"
-        ],
+        "tags": ["strategies"],
         "summary": "List all strategies",
         "operationId": "strategies.listStrategies",
         "responses": {
@@ -568,9 +490,7 @@
     },
     "/v1/strategies/{strategyId}": {
       "get": {
-        "tags": [
-          "strategies"
-        ],
+        "tags": ["strategies"],
         "summary": "Get strategy details",
         "operationId": "strategies.getStrategy",
         "parameters": [
@@ -600,9 +520,7 @@
     },
     "/v1/deposit": {
       "post": {
-        "tags": [
-          "transactions"
-        ],
+        "tags": ["transactions"],
         "summary": "Create deposit transaction",
         "operationId": "transactions.createDeposit",
         "requestBody": {
@@ -641,9 +559,7 @@
     },
     "/v1/withdraw": {
       "post": {
-        "tags": [
-          "transactions"
-        ],
+        "tags": ["transactions"],
         "summary": "Create withdrawal transaction",
         "operationId": "transactions.createWithdraw",
         "requestBody": {
