@@ -199,8 +199,8 @@ router.post("/withdraw", async (req: Request, res: Response) => {
   const RedeemEvent = dryrunRes.events.find((e) => e.type.endsWith("RedeemEvent"));
   const BurnLpEvent = dryrunRes.events.find((e) => e.type.endsWith("BurnLpEvent"));
 
-  console.log(RedeemEvent);
-  console.log(BurnLpEvent);
+  // console.log(RedeemEvent);
+  // console.log(BurnLpEvent);
 
   if (RedeemEvent && BurnLpEvent) {
     let bytes = await tx.build({
@@ -241,7 +241,3 @@ router.post("/withdraw", async (req: Request, res: Response) => {
 });
 
 export default router;
-
-function toUsd(x: BigInt | string | number, tlp_price: number): number {
-  return (Number(x) * tlp_price) / 10 ** 9;
-}
