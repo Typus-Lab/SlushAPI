@@ -1,0 +1,434 @@
+swagger: "2.0"
+info:
+  title: "Typus Perp TLP API"
+  description: "Provider contract for standardized DeFi protocol integration with Slush Wallet."
+  version: "0.0.4"
+host: "slush-api-gateway-9lhjz3rv.uc.gateway.dev"
+x-google-endpoints:
+  - name: "slush-api-gateway-9lhjz3rv.uc.gateway.dev"
+    allowCors: true
+schemes:
+  - "https"
+x-google-backend:
+  address: https://us-central1-aqueous-freedom-378103.cloudfunctions.net/api
+
+paths:
+  /v1/positions:
+    get:
+      tags:
+        - "positions"
+      summary: "List user positions"
+      operationId: "positions.listPositions"
+      parameters:
+        - name: "address"
+          in: "query"
+          required: true
+          type: "string"
+          description: "User's wallet address"
+      responses:
+        "200":
+          description: "ListPositionsResponse"
+          schema:
+            $ref: "#/definitions/ListPositionsResponse"
+  /v1/positions/{positionId}:
+    get:
+      tags:
+        - "positions"
+      summary: "Get position details"
+      operationId: "positions.getPosition"
+      parameters:
+        - name: "positionId"
+          in: "path"
+          required: true
+          type: "string"
+          description: "Position identifier"
+      responses:
+        "200":
+          description: "GetPositionResponse"
+          schema:
+            $ref: "#/definitions/GetPositionResponse"
+  /v1/strategies:
+    get:
+      tags:
+        - "strategies"
+      summary: "List all strategies"
+      operationId: "strategies.listStrategies"
+      responses:
+        "200":
+          description: "ListStrategiesResponse"
+          schema:
+            $ref: "#/definitions/ListStrategiesResponse"
+  /v1/strategies/{strategyId}:
+    get:
+      tags:
+        - "strategies"
+      summary: "Get strategy details"
+      operationId: "strategies.getStrategy"
+      parameters:
+        - name: "strategyId"
+          in: "path"
+          required: true
+          type: "string"
+          description: "Strategy identifier"
+      responses:
+        "200":
+          description: "GetStrategyResponse"
+          schema:
+            $ref: "#/definitions/GetStrategyResponse"
+  /v1/deposit:
+    post:
+      tags:
+        - "transactions"
+      summary: "Create deposit transaction"
+      operationId: "transactions.createDeposit"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/DepositRequest"
+      responses:
+        "200":
+          description: "DepositResponse"
+          schema:
+            $ref: "#/definitions/DepositResponse"
+        "422":
+          description: "Error that occurred during transaction building"
+          schema:
+            $ref: "#/definitions/TransactionBuildError"
+  /v1/withdraw:
+    post:
+      tags:
+        - "transactions"
+      summary: "Create withdrawal transaction"
+      operationId: "transactions.createWithdraw"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/WithdrawRequest"
+      responses:
+        "200":
+          description: "WithdrawResponse"
+          schema:
+            $ref: "#/definitions/WithdrawResponse"
+        "422":
+          description: "Error that occurred during transaction building"
+          schema:
+            $ref: "#/definitions/TransactionBuildError"
+definitions:
+  ListStrategiesResponse:
+    type: "object"
+    required:
+      - "strategies"
+    properties:
+      strategies:
+        type: "array"
+        items:
+          $ref: "#/definitions/Strategy"
+  Strategy:
+    type: "object"
+    required:
+      - "id"
+      - "type"
+      - "strategyType"
+      - "coinType"
+      - "minDeposit"
+      - "apy"
+      - "depositorsCount"
+      - "tvlUsd"
+      - "volume24hUsd"
+      - "fees"
+    properties:
+      id:
+        type: "string"
+        description: "Unique immutable identifier for the strategy"
+      type:
+        type: "string"
+        enum:
+          - "StrategyV1"
+        description: "Literal tag used to identify the Strategy schema"
+      strategyType:
+        type: "string"
+        enum:
+          - "VAULT"
+          - "LENDING"
+        description: "High-level strategy category"
+      coinType:
+        type: "string"
+        description: "Input coin types supported by this strategy"
+        pattern: "^(0x|0X)[a-fA-F0-9]{1,64}::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$"
+      minDeposit:
+        type: "array"
+        items:
+          $ref: "#/definitions/CoinValue"
+        description: "Minimum deposit amounts per coin type"
+      apy:
+        type: "object"
+        required:
+          - "current"
+          - "avg24h"
+          - "avg7d"
+          - "avg30d"
+        properties:
+          current:
+            type: "number"
+            description: "Current APY as decimal (e.g., 0.05 for 5%)"
+          avg24h:
+            type: "number"
+            description: "Trailing 24h APY as decimal"
+          avg7d:
+            type: "number"
+            description: "Trailing 7d APY as decimal"
+          avg30d:
+            type: "number"
+            description: "Trailing 30d APY as decimal"
+        description: "Current / trailing-window total APY (including incentives)"
+      depositorsCount:
+        $ref: "#/definitions/Int"
+        description: "Number of depositors in the strategy"
+      tvlUsd:
+        type: "number"
+        description: "Total Value Locked in USD"
+      volume24hUsd:
+        type: "number"
+        description: "24-hour volume in USD"
+      fees:
+        type: "object"
+        required:
+          - "depositBps"
+          - "withdrawBps"
+        properties:
+          depositBps:
+            type: "string"
+            description: "Deposit fee in basis points"
+          withdrawBps:
+            type: "string"
+            description: "Withdrawal fee in basis points"
+  CoinValue:
+    type: "object"
+    required:
+      - "coinType"
+      - "amount"
+    properties:
+      coinType:
+        $ref: "#/definitions/CoinType"
+      amount:
+        type: "string"
+        description: "Amount in base units (e.g. MIST for SUI)"
+      valueUsd:
+        type: "number"
+        description: "Value in USD (optional)"
+  CoinType:
+    type: "string"
+    description: "Sui coin type (e.g. 0x2::sui::SUI)"
+    pattern: "^(0x|0X)[a-fA-F0-9]{1,64}::[a-zA-Z0-9_]+::[a-zA-Z0-9_]+$"
+  Int:
+    type: "integer"
+    description: "an integer"
+    title: "int"
+  GetStrategyResponse:
+    type: "object"
+    required:
+      - "strategy"
+    properties:
+      strategy:
+        $ref: "#/definitions/Strategy"
+  ListPositionsResponse:
+    type: "object"
+    required:
+      - "positions"
+    properties:
+      positions:
+        type: "array"
+        items:
+          $ref: "#/definitions/Position"
+  Position:
+    type: "object"
+    required:
+      - "id"
+      - "strategyId"
+      - "type"
+      - "principal"
+      - "pendingRewards"
+      - "url"
+    properties:
+      id:
+        type: "string"
+        description: "Protocol's canonical stable identifier (e.g., object id, Sui type tag) for the position."
+      strategyId:
+        type: "string"
+        description: "Identifier of the associated strategy"
+      type:
+        type: "string"
+        enum:
+          - "PositionV1"
+        description: "Literal tag used to identify the Position schema"
+      principal:
+        type: "object"
+        required:
+          - "coinType"
+          - "amount"
+        properties:
+          coinType:
+            $ref: "#/definitions/CoinType"
+          amount:
+            type: "string"
+            description: "Amount in base units (e.g. MIST for SUI)"
+          valueUsd:
+            type: "number"
+            description: "Value in USD (optional)"
+        description: "Principal amount for the position"
+      pendingRewards:
+        type: "array"
+        items:
+          $ref: "#/definitions/CoinValue"
+        description: "Unclaimed rewards per coin type. If not applicable for a given position, e.g. auto-compounding rewards, return an empty array."
+      totalRewards:
+        type: "array"
+        items:
+          $ref: "#/definitions/CoinValue"
+        description: "Total rewards (pending + compounded) per coin type"
+      url:
+        type: "string"
+        description: "Fully qualified URL that will be used to link the user to their position on the provider app"
+  GetPositionResponse:
+    type: "object"
+    required:
+      - "position"
+    properties:
+      position:
+        $ref: "#/definitions/Position"
+  DepositRequest:
+    type: "object"
+    required:
+      - "type"
+      - "strategyId"
+      - "senderAddress"
+      - "coinType"
+      - "nativeAmount"
+    properties:
+      type:
+        type: "string"
+        enum:
+          - "StrategyV1"
+        description: "Should match the type of the strategy being deposited to"
+      strategyId:
+        type: "string"
+        description: "Target strategy identifier"
+      senderAddress:
+        type: "string"
+        description: "Sender's wallet address"
+      coinType:
+        type: "string"
+        description: "Coin type to deposit. May be a base asset or a supported zap-in asset."
+      nativeAmount:
+        type: "string"
+        description: "Amount to deposit in native units"
+  DepositResponse:
+    type: "object"
+    required:
+      - "bytes"
+      - "netDeposit"
+    properties:
+      bytes:
+        $ref: "#/definitions/Bytes"
+      fees:
+        type: "array"
+        items:
+          $ref: "#/definitions/CoinValue"
+        description: "Transaction fees"
+      netDeposit:
+        $ref: "#/definitions/CoinValue"
+  Bytes:
+    type: "string"
+    description: "A base64-encoded string containing raw bytes"
+  TransactionBuildError:
+    type: "object"
+    required:
+      - "_tag"
+    properties:
+      message:
+        type: "string"
+        description: "Human-readable error message"
+      _tag:
+        type: "string"
+        enum:
+          - "TransactionBuildError"
+    description: "Error that occurred during transaction building"
+  WithdrawRequest:
+    type: "object"
+    required:
+      - "type"
+      - "positionId"
+      - "senderAddress"
+      - "principal"
+      - "mode"
+    properties:
+      type:
+        type: "string"
+        enum:
+          - "PositionV1"
+        description: "Should match the type of the position being withdrawn from"
+      positionId:
+        type: "string"
+        description: "Position identifier to withdraw from"
+      senderAddress:
+        type: "string"
+        description: "Sender's wallet address"
+      principal:
+        type: "object"
+        required:
+          - "coinType"
+          - "amount"
+        properties:
+          coinType:
+            $ref: "#/definitions/CoinType"
+          amount:
+            type: "string"
+            description: "Amount in base units (e.g. MIST for SUI)"
+          valueUsd:
+            type: "number"
+            description: "Value in USD (optional)"
+        description: "Principal amount being withdrawn"
+      mode:
+        type: "string"
+        enum:
+          - "as-is"
+          - "usdc"
+        description: "Whether the user wants to withdraw in the same coin or in USDC"
+  WithdrawResponse:
+    type: "object"
+    required:
+      - "bytes"
+      - "principal"
+      - "rewards"
+    properties:
+      bytes:
+        $ref: "#/definitions/Bytes"
+      principal:
+        type: "object"
+        required:
+          - "coinType"
+          - "amount"
+        properties:
+          coinType:
+            $ref: "#/definitions/CoinType"
+          amount:
+            type: "string"
+            description: "Amount in base units (e.g. MIST for SUI)"
+          valueUsd:
+            type: "number"
+            description: "Value in USD (optional)"
+        description: "Principal amount being withdrawn"
+      rewards:
+        type: "array"
+        items:
+          $ref: "#/definitions/CoinValue"
+        description: "Reward amounts being withdrawn"
+      fees:
+        type: "array"
+        items:
+          $ref: "#/definitions/CoinValue"
+        description: "Transaction fees"
